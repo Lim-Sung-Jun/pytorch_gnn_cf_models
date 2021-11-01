@@ -88,11 +88,11 @@ class Model_Wrapper(object):
 
         for epoch in range(self.args.epochs):
             t1 = time()
-            self.model.train()
 
             n_batch = self.data_generator.n_train // self.data_generator.batch_size + 1
             running_loss = 0
             for _ in range(n_batch):
+                self.model.train()
                 self.optimizer.zero_grad()
                 # capture the collaborative signal from the graph
                 self.ua_embeddings, self.ia_embeddings = self.model()

@@ -12,7 +12,7 @@ def parse_args():
     # data
     parser.add_argument('--data_path', type=str, default='./data/',
                         help='Input data path.')
-    parser.add_argument('--dataset', type=str, default='Gowalla',
+    parser.add_argument('--dataset', type=str, default='Gowalla', #Gowalla
                         help='Dataset name: { Amazon-book, Gowalla, Movielens-100k }')
 
     # hyperparameter
@@ -24,7 +24,7 @@ def parse_args():
                         help='Learning rate.')
     parser.add_argument('--embed_dim', type=int, default=64, #
                         help='Embedding dimension.')
-    parser.add_argument('--layers_output_size', type=str, default='[64,64,64]', #
+    parser.add_argument('--layers_output_size', type=str, default='[64,64]', #
                         help='Output sizes of every layer adjusting n_layers')
 
     # 보류 1 ( 1, 3 )
@@ -38,12 +38,12 @@ def parse_args():
                         help='Node dropout.')
     # parser.add_argument('--mess_dropout', type=float, default=0.1,
     #                     help='Message dropout.')
-    parser.add_argument('--mess_dropout', nargs='?', default='[0.1,0.1,0.1]', #0.1, 0.1
+    parser.add_argument('--mess_dropout', nargs='?', default='[0.1,0.1]', #0.1, 0.1
                         help='Keep probability w.r.t. message dropout (i.e., 1-dropout_ratio) for each deep layer. 1: no dropout.')
 
     # data & model
     parser.add_argument('--adj_type', default='norm',
-                        help='Specify the type of the adjacency (laplacian) matrix from { plain, norm_self(= S), norm(= L) }.')
+                        help='Specify the type of the adjacency (laplacian) matrix from { plain, norm, mean }.')
     parser.add_argument('--model_type', default='ngcf', #ngcf
                         help='Specify the type of the graph convolutional layer from { ngcf, mf }.')
 

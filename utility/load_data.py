@@ -126,29 +126,38 @@ class Data(object):
         start_T = time()
         # inner function for normalizing matrix
         def compute_norm_adj_matrix_single(adj):
-            # 인접행렬의 행 값을 모두 더한다. (행 기준으로 합하면 degree 값을 구할 수 있다.)
+            # # 인접행렬의 행 값을 모두 더한다. (행 기준으로 합하면 degree 값을 구할 수 있다.)
+            # rowsum = np.array(adj.sum(1))
+            #
+            # # 행 값에 -1을 제곱하고 무한대인 경우 0으로 바꿔준다. (-(1/2)를 제곱해야하는데 양 옆이 아니고 한번에 하려고 -1을 제곱한다.)
+            # d_inv = np.power(rowsum, -1).flatten()
+            # d_inv[np.isinf(d_inv)] = 0.
+            #
+            # # 위에서 구한 값을 대각원소로 diagonal matrix를 만들어준다.
+            # d_mat_inv = sp.diags(d_inv)
+            #
+            # # 인접행렬과 dot product를 해서 정규화한다.
+            # norm_adj = d_mat_inv.dot(adj)
+            #
+            # # 리턴하고 sparse matrix, coo로 변환
+            # return norm_adj.tocoo()
+
             rowsum = np.array(adj.sum(1))
 
-            # 행 값에 -1을 제곱하고 무한대인 경우 0으로 바꿔준다. (-(1/2)를 제곱해야하는데 양 옆이 아니고 한번에 하려고 -1을 제곱한다.)
-            d_inv = np.power(rowsum, -1).flatten()
+            d_inv = np.power(rowsum, -.5).flatten()
             d_inv[np.isinf(d_inv)] = 0.
-
-            # 위에서 구한 값을 대각원소로 diagonal matrix를 만들어준다.
             d_mat_inv = sp.diags(d_inv)
 
-            # 인접행렬과 dot product를 해서 정규화한다.
-            norm_adj = d_mat_inv.dot(adj)
-
-            # 리턴하고 sparse matrix, coo로 변환
+            norm_adj = d_mat_inv.dot(adj).dot(d_mat_inv)
             return norm_adj.tocoo()
-
-        norm_self_adj_mat = compute_norm_adj_matrix_single(A + sp.eye(A.shape[0]))
-        norm_adj_mat = compute_norm_adj_matrix_single(A)
-        print(f"create norm adjacency matrix (norm_self_shape: {norm_self_adj_mat.shape}, norm_shape: {norm_adj_mat.shape}, time: {time() - start_T}")
+        ####
+        norm_adj_mat = compute_norm_adj_matrix_single(A) + sp.eye(A.shape[0])
+        mean_adj_mat = compute_norm_adj_matrix_single(A)
+        print(f"create norm adjacency matrix (norm_shape: {norm_adj_mat.shape}, mean_shape: {mean_adj_mat.shape}, time: {time() - start_T}")
         print()
         plain_adj_mat = A
 
-        return plain_adj_mat.tocsr(), norm_self_adj_mat.tocsr(), norm_adj_mat.tocsr()
+        return plain_adj_mat.tocsr(), norm_adj_mat.tocsr(), mean_adj_mat.tocsr()
 
 # sample data for mini-batches
     def sample(self):

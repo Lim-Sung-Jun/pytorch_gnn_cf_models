@@ -16,19 +16,19 @@ if __name__ == '__main__':
 
     # dataloader
     data_generator = Data(path=args.data_path + args.dataset, batch_size=args.batch_size)
-    plain_adj, norm_self_adj, norm_adj = data_generator.get_adj_mat()
-
+    plain_adj, norm_adj, mean_adj = data_generator.get_adj_mat()
+    # plain_adj_mat.tocsr(), norm_adj_mat.tocsr(), mean_adj_mat.tocsr()
     # data_config, args
     data_config = {}
     data_config['n_users'], data_config['n_items']  = data_generator.n_users, data_generator.n_items
 
-    if args.adj_type == 'norm_self':
-        # D^(-1)(A + I) = S
-        data_config['norm_adj'] = norm_self_adj
+    if args.adj_type == 'norm':
+        # D^(-1/2)(A)D^(-1/2) + I = L + I
+        data_config['norm_adj'] = norm_adj
         print('use the normalized adjacency matrix')
-    elif args.adj_type == 'norm':
-        # D^(-1)A + I = L + I
-        data_config['norm_adj'] = norm_adj + sp.eye(norm_adj.shape[0])
+    elif args.adj_type == 'mean':
+        # D^(-1/2)(A)D^(-1/2)  = L
+        data_config['norm_adj'] = mean_adj
         print('use the mean adjacency matrix')
     else: # A
         data_config['norm_adj'] = plain_adj

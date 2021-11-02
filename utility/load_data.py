@@ -96,19 +96,19 @@ class Data(object):
         try:
             start_T = time()
             adj_mat = sp.load_npz(self.path + '/s_adj_mat.npz')
-            norm_self_adj_mat = sp.load_npz(self.path + '/s_norm_self_adj_mat.npz')
             norm_adj_mat = sp.load_npz(self.path + '/s_norm_adj_mat.npz')
+            mean_adj_mat = sp.load_npz(self.path + '/s_mean_adj_mat.npz')
             print(f"loaded adjacency matrix (shape: {adj_mat.shape}, time: {time() - start_T}")
             print()
         except Exception:
             print("no existing adj_matrix found")
-            print()
-            adj_mat, norm_self_adj_mat, norm_adj_mat = self.create_adj_mat()
+            adj_mat, norm_adj_mat, mean_adj_mat = self.create_adj_mat()
             sp.save_npz(self.path + '/s_adj_mat.npz', adj_mat)
-            sp.save_npz(self.path + '/s_norm_self_adj_mat.npz', norm_self_adj_mat)
             sp.save_npz(self.path + '/s_norm_adj_mat.npz', norm_adj_mat)
-        return adj_mat, norm_self_adj_mat, norm_adj_mat
+            sp.save_npz(self.path + '/s_mean_adj_mat.npz', mean_adj_mat)
+        return adj_mat, norm_adj_mat, mean_adj_mat
 
+    # plain_adj, norm_adj, mean_adj
     # create adj_mat, norm_self_adj_mat, norm_adj_mat
     def create_adj_mat(self):
         start_T = time()
@@ -151,7 +151,7 @@ class Data(object):
             norm_adj = d_mat_inv.dot(adj).dot(d_mat_inv)
             return norm_adj.tocoo()
         ####
-        norm_adj_mat = compute_norm_adj_matrix_single(A) + sp.eye(A.shape[0])
+        norm_adj_mat = compute_norm_adj_matrix_single(A + sp.eye(A.shape[0]))
         mean_adj_mat = compute_norm_adj_matrix_single(A)
         print(f"create norm adjacency matrix (norm_shape: {norm_adj_mat.shape}, mean_shape: {mean_adj_mat.shape}, time: {time() - start_T}")
         print()

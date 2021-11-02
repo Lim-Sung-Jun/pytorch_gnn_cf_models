@@ -1,0 +1,9 @@
+datetime: 2021-11-02 19:20:14.598196
+
+embed_size=64, lr=0.00010, mess_dropout=[0.1, 0.1], regs=1e-05, adj_type=norm
+
+Epoch: 0 loss:54.87800967693329 recall:None ndcg:None training time:7.912056922912598
+
+
+{'Epoch': [0], 'Loss': [54.87800967693329], 'Recall': [None], 'NDCG': [None], 'Training Time': [7.912056922912598]}
+

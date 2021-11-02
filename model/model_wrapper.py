@@ -24,24 +24,25 @@ class Model_Wrapper(object):
         self.n_users = data_config['n_users']
         self.n_items = data_config['n_items']
         self.norm_adj = data_config['norm_adj']
-        self.laplacian = self.norm_adj - sp.eye(self.norm_adj.shape[0])
+        # self.laplacian = self.norm_adj - sp.eye(self.norm_adj.shape[0])
 
         #convert sparse matrix to tensor and then allocate on device
         self.norm_adj = self._convert_sp_mat_to_sp_tensor(self.norm_adj).float()
-        self.laplacian = self._convert_sp_mat_to_sp_tensor(self.laplacian).float()
+        # self.laplacian = self._convert_sp_mat_to_sp_tensor(self.laplacian).float()
 
         self.args.mess_dropout = eval(self.args.mess_dropout)
         self.args.layers_output_size = eval(self.args.layers_output_size)
 
         if args.model_type in ['ngcf']:
-            self.model = NGCF(self.n_users, self.n_items, self.args.embed_dim, self.args.layers_output_size, self.args.mess_dropout, self.args.node_dropout, self.norm_adj, self.laplacian)
+            self.model = NGCF(self.n_users, self.n_items, self.args.embed_dim, self.args.layers_output_size, self.args.mess_dropout, self.args.node_dropout, self.norm_adj) #, self.laplacian
         elif args.model_type in ['mf']:
             self.model = MF(self.n_users, self.n_items, self.args.embed_dim)
         else:
             raise Exception('Dont know which model to train')
 
         self.model = self.model.to(device)
-        # self.norm_adj = self.norm_adj.to(device) # 이중으로 device에 올려주
+        self.norm_adj = self.norm_adj.to(device) # 이중으로 device에 올려주
+        # self.laplacian = self.laplacian.to(device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.args.lr)
         self.lr_scheduler = self.set_lr_scheduler()
 
@@ -161,7 +162,6 @@ class Model_Wrapper(object):
                 self.results['NDCG'].append(None)
                 self.results['Training Time'].append(training_time)
 
-            print("results: ", self.results)
             if should_stop == True:
                 break
 

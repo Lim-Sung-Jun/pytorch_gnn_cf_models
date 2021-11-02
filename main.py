@@ -23,7 +23,7 @@ if __name__ == '__main__':
     data_config['n_users'], data_config['n_items']  = data_generator.n_users, data_generator.n_items
 
     if args.adj_type == 'norm':
-        # D^(-1/2)(A)D^(-1/2) + I = L + I
+        # D^(-1/2)(A + I)D^(-1/2) = 논문 코드에서는 D^-1(A + I)
         data_config['norm_adj'] = norm_adj
         print('use the normalized adjacency matrix')
     elif args.adj_type == 'mean':

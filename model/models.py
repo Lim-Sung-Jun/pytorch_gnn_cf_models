@@ -7,7 +7,7 @@ import numpy as np
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class NGCF(nn.Module):
-    def __init__(self, n_users, n_items, embedding_dim, weight_size, dropout_list, node_dropout, norm_adj, laplacian):
+    def __init__(self, n_users, n_items, embedding_dim, weight_size, dropout_list, node_dropout, norm_adj):
         super().__init__()
         self.n_users = n_users
         self.n_items = n_items
@@ -15,7 +15,7 @@ class NGCF(nn.Module):
         self.weight_size = weight_size
         self.n_layers = len(self.weight_size)
         self.norm_adj = norm_adj
-        self.laplacian = laplacian
+        # self.laplacian = laplacian
         self.node_dropout = node_dropout
         self.dropout_list = nn.ModuleList()
         self.GC_Linear_list = nn.ModuleList()
@@ -34,8 +34,8 @@ class NGCF(nn.Module):
 
     def _init_weight_(self):
         #device
-        nn.init.xavier_uniform_(self.user_embedding.weight.to(device))
-        nn.init.xavier_uniform_(self.item_embedding.weight.to(device))
+        nn.init.xavier_uniform_(self.user_embedding.weight)
+        nn.init.xavier_uniform_(self.item_embedding.weight)
 
     def _droupout_sparse(self, X):
         """
@@ -59,23 +59,23 @@ class NGCF(nn.Module):
 
     def forward(self):
 
-        #node dropout
-        self.norm_adj_hat = self._droupout_sparse(self.norm_adj) if self.node_dropout > 0 else self.norm_adj
-        self.laplacian_hat = self._droupout_sparse(self.laplacian) if self.node_dropout > 0 else self.laplacian
+        #node dropout ( option )
+        # self.norm_adj_hat = self._droupout_sparse(self.norm_adj) if self.node_dropout > 0 else self.norm_adj
+        # self.laplacian_hat = self._droupout_sparse(self.laplacian) if self.node_dropout > 0 else self.laplacian
 
         ego_embeddings = torch.cat((self.user_embedding.weight, self.item_embedding.weight), dim=0)
         all_embeddings = [ego_embeddings] # E
 
         for i in range(self.n_layers):
             # weighted sum messages of neighbours
-            side_embeddings = torch.sparse.mm(self.norm_adj_hat, ego_embeddings) # (L + I)E
-            side_L_embeddings = torch.sparse.mm(self.laplacian_hat, ego_embeddings)  # LE
+            side_embeddings = torch.sparse.mm(self.norm_adj, ego_embeddings) # (L + I)E
+            # side_L_embeddings = torch.sparse.mm(self.laplacian, ego_embeddings)  # LE
 
             # transformed sum weighted sum messages of neighbours
             sum_embeddings = F.leaky_relu(self.GC_Linear_list[i](side_embeddings)) # (L + I)EW
 
             # bi messages of neighbours
-            bi_embeddings = torch.mul(ego_embeddings, side_L_embeddings) # LEE
+            bi_embeddings = torch.mul(ego_embeddings, side_embeddings) # LEE
             # transformed bi messages of neighbours
             bi_embeddings = F.leaky_relu(self.Bi_Linear_list[i](bi_embeddings)) # LEEW
 
@@ -107,8 +107,8 @@ class MF(nn.Module):
         self._init_weight_()
 
     def _init_weight_(self):
-        nn.init.xavier_uniform_(self.user_embedding.weight.to(device))
-        nn.init.xavier_uniform_(self.item_embedding.weight.to(device))
+        nn.init.xavier_uniform_(self.user_embedding.weight)
+        nn.init.xavier_uniform_(self.item_embedding.weight)
 
     def forward(self):
         u_g_embeddings = self.user_embedding.weight

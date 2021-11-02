@@ -12,11 +12,11 @@ def parse_args():
     # data
     parser.add_argument('--data_path', type=str, default='./data/',
                         help='Input data path.')
-    parser.add_argument('--dataset', type=str, default='Gowalla', #Gowalla
+    parser.add_argument('--dataset', type=str, default='Movielens-100k', #Gowalla
                         help='Dataset name: { Amazon-book, Gowalla, Movielens-100k }')
 
     # hyperparameter
-    parser.add_argument('--epochs', type=int, default=400, #400
+    parser.add_argument('--epochs', type=int, default=1, #400
                         help='Number of epoch.')
     parser.add_argument('--batch_size', type=int, default=1024, # 1024
                         help='Batch size.')
@@ -35,7 +35,7 @@ def parse_args():
 
     # 보류 2 ( 1, 3 )
     parser.add_argument('--node_dropout', type=float, default=0.,
-                        help='Node dropout.')
+                        help='Node dropout. if you use this option, modify the ngcf forward function')
     # parser.add_argument('--mess_dropout', type=float, default=0.1,
     #                     help='Message dropout.')
     parser.add_argument('--mess_dropout', nargs='?', default='[0.1,0.1]', #0.1, 0.1

@@ -1,0 +1,55 @@
+certifi==2021.10.8
+dill==0.3.4
+dm-tree==0.1.6
+gast==0.4.0
+gin-config==0.4.0
+google-api-core==1.30.0
+google-api-python-client==2.10.0
+google-auth-httplib2==0.1.0
+google-cloud-bigquery==2.20.0
+google-cloud-core==1.7.1
+google-crc32c==1.1.2
+google-resumable-media==1.3.1
+googleapis-common-protos==1.53.0
+h5py==3.1.0
+httplib2==0.19.1
+importlib-resources==5.2.0
+joblib @ file:///home/conda/feedstock_root/build_artifacts/joblib_1633637554808/work
+kaggle==1.5.12
+keras-nightly==2.5.0.dev2021032900
+mkl-fft==1.3.0
+mkl-random @ file:///opt/concourse/worker/volumes/live/f196a661-8e33-4aac-63bc-efb2ff50e035/volume/mkl_random_1626186080069/work
+mkl-service==2.4.0
+numpy @ file:///opt/concourse/worker/volumes/live/ceac9fd4-1ae1-48f8-612a-0c99bf783d0e/volume/numpy_and_numpy_base_1634106709647/work
+oauth2client==4.1.3
+olefile @ file:///Users/ktietz/demo/mc3/conda-bld/olefile_1629805411829/work
+opencv-python-headless==4.5.2.54
+Pillow @ file:///opt/concourse/worker/volumes/live/a7c937c5-8583-47b2-5ff1-0dd2a9a0d739/volume/pillow_1625655830909/work
+portalocker==2.0.0
+promise==2.3
+proto-plus==1.18.1
+py-cpuinfo==8.0.0
+pycocotools==2.0.2
+python-slugify==5.0.2
+sacrebleu==1.5.1
+scikit-learn @ file:///Users/runner/miniforge3/conda-bld/scikit-learn_1619628638148/work
+scipy @ file:///opt/concourse/worker/volumes/live/8f68d291-1564-4c63-4bf1-6b1f103a9a36/volume/scipy_1630606804849/work
+sentencepiece==0.1.96
+seqeval==1.2.2
+six==1.15.0
+tensorflow-addons==0.13.0
+tensorflow-datasets==4.3.0
+tensorflow-hub==0.12.0
+tensorflow-metadata==1.1.0
+tensorflow-model-optimization==0.6.0
+tensorflow-serving-api==2.5.1
+text-unidecode==1.3
+tf-models-official==2.5.0
+tf-slim==1.1.0
+threadpoolctl @ file:///home/conda/feedstock_root/build_artifacts/threadpoolctl_1633102299089/work
+torch==1.9.1
+torchaudio==0.9.0a0+a85b239
+torchvision==0.10.1
+typeguard==2.12.1
+typing-extensions @ file:///tmp/build/80754af9/typing_extensions_1631814937681/work
+uritemplate==3.0.1

@@ -17,7 +17,7 @@ if __name__ == '__main__':
     # dataloader
     data_generator = Data(path=args.data_path + args.dataset, batch_size=args.batch_size)
     plain_adj, norm_adj, mean_adj = data_generator.get_adj_mat()
-    # plain_adj_mat.tocsr(), norm_adj_mat.tocsr(), mean_adj_mat.tocsr()
+
     # data_config, args
     data_config = {}
     data_config['n_users'], data_config['n_items']  = data_generator.n_users, data_generator.n_items

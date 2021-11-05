@@ -12,11 +12,11 @@ def parse_args():
     # data
     parser.add_argument('--data_path', type=str, default='./data/',
                         help='Input data path.')
-    parser.add_argument('--dataset', type=str, default='Movielens-100k', #Gowalla
+    parser.add_argument('--dataset', type=str, default='Gowalla', #Gowalla
                         help='Dataset name: { Amazon-book, Gowalla, Movielens-100k }')
 
     # hyperparameter
-    parser.add_argument('--epochs', type=int, default=1, #400
+    parser.add_argument('--epochs', type=int, default=400, #400
                         help='Number of epoch.')
     parser.add_argument('--batch_size', type=int, default=1024, # 1024
                         help='Batch size.')
@@ -52,7 +52,7 @@ def parse_args():
                         help='k order of metric evaluation (e.g. NDCG@k, Recall@k)')
     #     parser.add_argument('--Ks', nargs='?', default='[20, 40, 60, 80, 100]',
     #                         help='Output sizes of every layer')
-    parser.add_argument('--eval_N', type=int, default=10, #10
+    parser.add_argument('--eval_N', type=int, default=1, #10
                             help='Evaluate every N epochs')
 
     # save

@@ -41,10 +41,10 @@ def compute_ndcg_k(pred_items, test_items, test_indices, k):
     -------
     NDCG@k
     """
-    r = (test_items * pred_items).gather(1, test_indices)
+    r = (test_items * pred_items).gather(1, test_indices) # 상위 인덱스를 가져온다. 얼마나 맞췄는지 알 수 있다.
     f = torch.from_numpy(np.log2(np.arange(2, k + 2))).float().to(device)  # cuda()
-    dcg = (r[:, :k] / f).sum(1)
-    dcg_max = (torch.sort(r, dim=1, descending=True)[0][:, :k] / f).sum(1)
+    dcg = (r[:, :k] / f).sum(1) # 곱해서 정답이면 다 더해야하는데 k열까지만 더하네? test_indices만 가져오기때뭉네 어차피 20개다.
+    dcg_max = (torch.sort(r, dim=1, descending=True)[0][:, :k] / f).sum(1) # dcg_max면 당연히 전부 1아닌가?
     ndcg = dcg / dcg_max
     ndcg[torch.isnan(ndcg)] = 0
     return ndcg

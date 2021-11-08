@@ -41,7 +41,6 @@ class Model_Wrapper(object):
             raise Exception('Dont know which model to train')
 
         self.model = self.model.to(device)
-        self.norm_adj = self.norm_adj.to(device) # 이중으로 device에 올려주
         # self.laplacian = self.laplacian.to(device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.args.lr)
         self.lr_scheduler = self.set_lr_scheduler()
@@ -130,8 +129,8 @@ class Model_Wrapper(object):
                     #                           self.data_generator.R_train,
                     #                           self.data_generator.R_test,
                     #                           self.args.k)
-                    recall, ndcg = eval_model(nn.Parameter(self.ua_embeddings).detach(),
-                                              nn.Parameter(self.ia_embeddings).detach(),
+                    recall, ndcg = eval_model((self.ua_embeddings).detach(),
+                                              (self.ia_embeddings).detach(),
                                               self.data_generator.R_train,
                                               self.data_generator.R_test,
                                               self.args.k)

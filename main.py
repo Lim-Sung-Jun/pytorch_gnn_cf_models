@@ -1,10 +1,8 @@
-import torch
-
 from model.model_wrapper import *
 from utility.parser import *
 from utility.load_data import *
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
 print("available device: ", device)
 
 if __name__ == '__main__':

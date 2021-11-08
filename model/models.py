@@ -14,7 +14,7 @@ class NGCF(nn.Module):
         self.embedding_dim = embedding_dim
         self.weight_size = weight_size
         self.n_layers = len(self.weight_size)
-        self.norm_adj = norm_adj
+        self.norm_adj = norm_adj.to(device)
         # self.laplacian = laplacian
         self.node_dropout = node_dropout
         self.dropout_list = nn.ModuleList()
@@ -33,29 +33,29 @@ class NGCF(nn.Module):
         self._init_weight_()
 
     def _init_weight_(self):
-        #device
+        # embedding이 normalize되어있는데 uniformazation할 필요있나?
         nn.init.xavier_uniform_(self.user_embedding.weight)
         nn.init.xavier_uniform_(self.item_embedding.weight)
 
-    def _droupout_sparse(self, X):
-        """
-        Drop individual locations in X
-
-        Arguments:
-        ---------
-        X = adjacency matrix (PyTorch sparse tensor)
-        dropout = fraction of nodes to drop
-        noise_shape = number of non non-zero entries of X
-        """
-
-        node_dropout_mask = ((self.node_dropout) + torch.rand(X._nnz())).floor().bool().to(device)
-        i = X.coalesce().indices()
-        v = X.coalesce()._values()
-        i[:, node_dropout_mask] = 0
-        v[node_dropout_mask] = 0
-        X_dropout = torch.sparse.FloatTensor(i, v, X.shape).to(X.device)
-
-        return X_dropout.mul(1 / (1 - self.node_dropout))
+    # def _droupout_sparse(self, X):
+    #     """
+    #     Drop individual locations in X
+    #
+    #     Arguments:
+    #     ---------
+    #     X = adjacency matrix (PyTorch sparse tensor)
+    #     dropout = fraction of nodes to drop
+    #     noise_shape = number of non non-zero entries of X
+    #     """
+    #
+    #     node_dropout_mask = ((self.node_dropout) + torch.rand(X._nnz())).floor().bool().to(device)
+    #     i = X.coalesce().indices()
+    #     v = X.coalesce()._values()
+    #     i[:, node_dropout_mask] = 0
+    #     v[node_dropout_mask] = 0
+    #     X_dropout = torch.sparse.FloatTensor(i, v, X.shape).to(X.device)
+    #
+    #     return X_dropout.mul(1 / (1 - self.node_dropout))
 
     def forward(self):
 

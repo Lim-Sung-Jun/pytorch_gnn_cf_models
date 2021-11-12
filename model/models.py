@@ -15,7 +15,6 @@ class NGCF(nn.Module):
         self.weight_size = weight_size
         self.n_layers = len(self.weight_size)
         self.norm_adj = norm_adj.to(device)
-        # self.laplacian = laplacian
         self.node_dropout = node_dropout
         self.dropout_list = nn.ModuleList()
         self.GC_Linear_list = nn.ModuleList()

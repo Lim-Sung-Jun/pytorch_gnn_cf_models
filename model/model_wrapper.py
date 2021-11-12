@@ -15,7 +15,7 @@ from torch import nn
 from model.models import *
 from utility.helper import *
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
 
 class Model_Wrapper(object):
     def __init__(self, data_config, args, data_generator):
@@ -28,7 +28,6 @@ class Model_Wrapper(object):
 
         #convert sparse matrix to tensor and then allocate on device
         self.norm_adj = self._convert_sp_mat_to_sp_tensor(self.norm_adj).float()
-        # self.laplacian = self._convert_sp_mat_to_sp_tensor(self.laplacian).float()
 
         self.args.mess_dropout = eval(self.args.mess_dropout)
         self.args.layers_output_size = eval(self.args.layers_output_size)
@@ -41,7 +40,6 @@ class Model_Wrapper(object):
             raise Exception('Dont know which model to train')
 
         self.model = self.model.to(device)
-        # self.laplacian = self.laplacian.to(device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.args.lr)
         self.lr_scheduler = self.set_lr_scheduler()
 
@@ -123,17 +121,26 @@ class Model_Wrapper(object):
                 self.model.eval()
                 with torch.no_grad():
                     t2 = time()
-                    # ua_embeddings, ia_embeddings에 nn.parameter을 해야하나?
-                    # recall, ndcg = eval_model(self.model.u_g_embeddings.detach(),
-                    #                           self.model.i_g_embeddings.detach(),
-                    #                           self.data_generator.R_train,
-                    #                           self.data_generator.R_test,
-                    #                           self.args.k)
-                    recall, ndcg = eval_model((self.ua_embeddings).detach(),
-                                              (self.ia_embeddings).detach(),
-                                              self.data_generator.R_train,
-                                              self.data_generator.R_test,
-                                              self.args.k)
+                    # 1.u,i emb
+                    u_emb = self.ua_embeddings.to(device)
+                    i_emb = self.ia_embeddings.to(device)
+                    # 2.prediction
+                    all_pre = torch.mm(u_emb, i_emb.t())
+                    # 4.test + nothing
+                    non_train_u_i_interaction = torch.from_numpy(1 - self.data_generator.R_train.todense()).to(device)
+                    # 5.test + nothing prediction
+                    all_pre = all_pre * non_train_u_i_interaction
+                    # 6.top k indices
+                    _, test_indices = torch.topk(all_pre, dim=1, k = self.args.k)
+                    # 7.
+                    pred_items = torch.zeros_like(all_pre).float()
+                    pred_items.scatter_(dim=1, index=test_indices, src=torch.ones_like(test_indices).float().to(device))
+                    # 8. lr-gccf 코드랑 상위 20개함 idcg 비교해보기 결과는 같아야함!
+                    test_u_i_interaction = torch.from_numpy(self.data_generator.R_test.todense()).to(device)
+
+                    # 9.
+                    recall ,ndcg = eval_model(pred_items, test_u_i_interaction, self.args.k)
+
                 print(
                     "Evaluate current model:\n",
                     "Epoch: {}, Validation time: {:.2f}s".format(epoch, time()-t2),"\n",
@@ -204,5 +211,5 @@ class Model_Wrapper(object):
         coo = X.tocoo().astype(np.float32)
         i = torch.LongTensor(np.mat([coo.row, coo.col]))
         v = torch.FloatTensor(coo.data)
-        res = torch.sparse.FloatTensor(i, v, coo.shape).to(device)
+        res = torch.sparse.FloatTensor(i, v, coo.shape)
         return res

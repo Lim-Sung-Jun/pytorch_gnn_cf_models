@@ -17,6 +17,8 @@ class Data(object):
         self.neg_pools = {}
 
         self.exist_users = []
+        self.train_items = {}
+        self.test_items = {}
 
         self.load()
 
@@ -43,7 +45,7 @@ class Data(object):
                 if len(l) > 0:
                     l = l.strip('\n')
                     try:
-                        items = [int(i) for i in l.split(' ')[1:]]
+                        items = [int(i) for i in l.split(' ')[1:]] ### 2nd. 아이템 리스트, 유저-아이템 딕셔너리 -> ndcg에 도움되겠다. ###
                     except Exception:
                         continue
                     if not items:
@@ -63,8 +65,7 @@ class Data(object):
         t1 = time()
         self.R_train = sp.dok_matrix((self.n_users, self.n_items), dtype=np.float32)
         self.R_test = sp.dok_matrix((self.n_users, self.n_items), dtype=np.float32)
-
-        self.train_items, self.test_set = {}, {}
+        ### 2nd. train_items가 user-item_list dictionary네,  ###
         with open(self.train_file) as f_train:
             with open(self.test_file) as f_test:
                 for l in f_train.readlines():
@@ -87,26 +88,25 @@ class Data(object):
                     uid, test_items = items[0], items[1:]
                     for i in test_items:
                         self.R_test[uid, i] = 1.0
-                    self.test_set[uid] = test_items
+                    self.test_items[uid] = test_items
         print('Complete. Interaction matrices R_train and R_test created in', time() - t1, 'sec')
-        print()
 
     # get adj_mat, norm_self_adj_mat, norm_adj_mat
     def get_adj_mat(self):
         try:
             start_T = time()
             adj_mat = sp.load_npz(self.path + '/s_adj_mat.npz')
-            norm_adj_mat = sp.load_npz(self.path + '/s_norm_adj_mat.npz')
-            mean_adj_mat = sp.load_npz(self.path + '/s_mean_adj_mat.npz')
+            lr_gccf_adj_mat = sp.load_npz(self.path + '/s_lr_gccf_adj_mat.npz')
+            ngcf_adj_mat = sp.load_npz(self.path + '/s_ngcf_adj_mat.npz')
             print(f"loaded adjacency matrix (shape: {adj_mat.shape}, time: {time() - start_T}")
             print()
         except Exception:
             print("no existing adj_matrix found")
-            adj_mat, norm_adj_mat, mean_adj_mat = self.create_adj_mat()
+            adj_mat, lr_gccf_adj_mat, ngcf_adj_mat = self.create_adj_mat()
             sp.save_npz(self.path + '/s_adj_mat.npz', adj_mat)
-            sp.save_npz(self.path + '/s_norm_adj_mat.npz', norm_adj_mat)
-            sp.save_npz(self.path + '/s_mean_adj_mat.npz', mean_adj_mat)
-        return adj_mat, norm_adj_mat, mean_adj_mat
+            sp.save_npz(self.path + '/s_lr_gccf_adj_mat.npz', lr_gccf_adj_mat)
+            sp.save_npz(self.path + '/s_ngcf_adj_mat.npz', ngcf_adj_mat)
+        return adj_mat, lr_gccf_adj_mat, ngcf_adj_mat
 
     # plain_adj, norm_adj, mean_adj
     # create adj_mat, norm_self_adj_mat, norm_adj_mat
@@ -125,7 +125,7 @@ class Data(object):
 
         start_T = time()
         # inner function for normalizing matrix
-        def compute_norm_adj_matrix_single(adj):
+        def compute_norm_adj_matrix_single(adj, index):
             # # 인접행렬의 행 값을 모두 더한다. (행 기준으로 합하면 degree 값을 구할 수 있다.)
             # rowsum = np.array(adj.sum(1))
             #
@@ -144,20 +144,23 @@ class Data(object):
 
             rowsum = np.array(adj.sum(1))
 
-            d_inv = np.power(rowsum, -.5).flatten()
+            d_inv = np.power(rowsum, index).flatten()
             d_inv[np.isinf(d_inv)] = 0.
             d_mat_inv = sp.diags(d_inv)
 
-            norm_adj = d_mat_inv.dot(adj).dot(d_mat_inv)
+            if index == -1:
+                norm_adj = d_mat_inv.dot(adj)
+            elif index == -.5:
+                norm_adj = d_mat_inv.dot(adj).dot(d_mat_inv)
+
             return norm_adj.tocoo()
-        ####
-        norm_adj_mat = compute_norm_adj_matrix_single(A + sp.eye(A.shape[0]))
-        mean_adj_mat = compute_norm_adj_matrix_single(A)
-        print(f"create norm adjacency matrix (norm_shape: {norm_adj_mat.shape}, mean_shape: {mean_adj_mat.shape}, time: {time() - start_T}")
-        print()
+        #### 2nd. ngcf, lr-gccf 용으로 norm adj 두 개 만들면 될듯!
+        lr_gccf_adj_mat = compute_norm_adj_matrix_single(A + sp.eye(A.shape[0]), -.5)
+        ngcf_adj_mat = compute_norm_adj_matrix_single(A + sp.eye(A.shape[0]), -1)
+        print(f"create norm adjacency matrix (norm_shape: {lr_gccf_adj_mat.shape}, mean_shape: {ngcf_adj_mat.shape}, time: {time() - start_T}")
         plain_adj_mat = A
 
-        return plain_adj_mat.tocsr(), norm_adj_mat.tocsr(), mean_adj_mat.tocsr()
+        return plain_adj_mat.tocsr(), lr_gccf_adj_mat.tocsr(), ngcf_adj_mat.tocsr()
 
 # sample data for mini-batches
     def sample(self):

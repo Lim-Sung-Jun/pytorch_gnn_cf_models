@@ -14,19 +14,19 @@ if __name__ == '__main__':
 
     # dataloader
     data_generator = Data(path=args.data_path + args.dataset, batch_size=args.batch_size)
-    plain_adj, norm_adj, mean_adj = data_generator.get_adj_mat()
+    plain_adj, lr_gccf_adj, ngcf_adj = data_generator.get_adj_mat()
 
     # data_config, args
     data_config = {}
     data_config['n_users'], data_config['n_items']  = data_generator.n_users, data_generator.n_items
 
-    if args.adj_type == 'norm':
-        # D^(-1/2)(A + I)D^(-1/2) = 논문 코드에서는 D^-1(A + I)
-        data_config['norm_adj'] = norm_adj
+    if args.model_type == 'lr_gccf':
+        # D^(-1/2)(A + I)D^(-1/2)
+        data_config['norm_adj'] = lr_gccf_adj
         print('use the normalized adjacency matrix')
-    elif args.adj_type == 'mean':
-        # D^(-1/2)(A)D^(-1/2)  = L
-        data_config['norm_adj'] = mean_adj
+    elif args.model_type == 'ngcf':
+        # D^-1(A + I)
+        data_config['norm_adj'] = ngcf_adj
         print('use the mean adjacency matrix')
     else: # A
         data_config['norm_adj'] = plain_adj

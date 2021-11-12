@@ -118,29 +118,57 @@ class Model_Wrapper(object):
 
             # 여기부터 밑까지는 일단 주석처리해서 loss함수가 잘 작동하는지 비교해보자.
             if epoch % self.args.eval_N  == (self.args.eval_N - 1):
+                # model.train()
+                #
+                # PATH_model = path_save_model_base + '/epoch' + str(epoch) + '.pt'
+                # # torch.save(model.state_dict(), PATH_model)
+                # model.load_state_dict(torch.load(PATH_model))
                 self.model.eval()
                 with torch.no_grad():
                     t2 = time()
+
                     # 1.u,i emb
-                    u_emb = self.ua_embeddings.to(device)
-                    i_emb = self.ia_embeddings.to(device)
+                    u_emb, i_emb = self.model()
+                    u_emb = u_emb.to(device)
+                    i_emb = i_emb.to(device)
+
                     # 2.prediction
                     all_pre = torch.mm(u_emb, i_emb.t())
-                    # 4.test + nothing
-                    non_train_u_i_interaction = torch.from_numpy(1 - self.data_generator.R_train.todense()).to(device)
-                    # 5.test + nothing prediction
-                    all_pre = all_pre * non_train_u_i_interaction
-                    # 6.top k indices
-                    _, test_indices = torch.topk(all_pre, dim=1, k = self.args.k)
-                    # 7.
-                    pred_items = torch.zeros_like(all_pre).float()
-                    pred_items.scatter_(dim=1, index=test_indices, src=torch.ones_like(test_indices).float().to(device))
-                    # 8. lr-gccf 코드랑 상위 20개함 idcg 비교해보기 결과는 같아야함!
-                    test_u_i_interaction = torch.from_numpy(self.data_generator.R_test.todense()).to(device)
+                    set_all = set(range(self.n_items))
+                    # metrices
+                    HR, NDCG = [], []
+                    # 3.test users
+                    for user in self.data_generator.test_items:
+                        #4. test feedback
+                        test_items = list(self.data_generator.test_items[user])
+                        index_end_i = len(test_items)
+                        #5. 0 feedback
+                        no_feedback_items = list(set_all - set(self.data_generator.train_items[user]) - set(self.data_generator.test_items[user]))
+                        #6. [ test items, no_feedback_items ] -> until index_end_i, the label datas
+                        test_items.extend(no_feedback_items)
 
-                    # 9.
-                    recall ,ndcg = eval_model(pred_items, test_u_i_interaction, self.args.k)
-
+                        pre_one = all_pre[user][test_items]
+                        _, test_indices = torch.topk(pre_one, dim=0, k=self.args.k)
+                        recall, ndcg = eval_model(test_indices, index_end_i, self.args.k) # 2nd.
+                        HR.append(recall)
+                        NDCG.append(ndcg)
+                    recall = round(np.mean(HR), 4)
+                    ndcg = round(np.mean(NDCG), 4)
+                        ####################################################
+                    # # 4.test + nothing
+                    # non_train_u_i_interaction = torch.from_numpy(1 - self.data_generator.R_train.todense()).to(device)
+                    # # 5.test + nothing prediction
+                    # all_pre = all_pre * non_train_u_i_interaction
+                    # # 6.top k indices
+                    # _, test_indices = torch.topk(all_pre, dim=1, k = self.args.k)
+                    # # 7.
+                    # pred_items = torch.zeros_like(all_pre).float()
+                    # pred_items.scatter_(dim=1, index=test_indices, src=torch.ones_like(test_indices).float().to(device))
+                    # # 8. lr-gccf 코드랑 상위 20개함 idcg 비교해보기 결과는 같아야함!
+                    # test_u_i_interaction = torch.from_numpy(self.data_generator.R_test.todense()).to(device)
+                    #
+                    # # 9.
+                    # recall ,ndcg = eval_model(pred_items, test_u_i_interaction, self.args.k)
                 print(
                     "Evaluate current model:\n",
                     "Epoch: {}, Validation time: {:.2f}s".format(epoch, time()-t2),"\n",

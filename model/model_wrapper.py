@@ -33,9 +33,11 @@ class Model_Wrapper(object):
         self.args.layers_output_size = eval(self.args.layers_output_size)
 
         if args.model_type in ['ngcf']:
-            self.model = NGCF(self.n_users, self.n_items, self.args.embed_dim, self.args.layers_output_size, self.args.mess_dropout, self.args.node_dropout, self.norm_adj) #, self.laplacian
+            self.model = NGCF(self.n_users, self.n_items, self.args.embed_dim, self.args.layers_output_size, self.args.mess_dropout, self.args.node_dropout, self.norm_adj)
         elif args.model_type in ['mf']:
             self.model = MF(self.n_users, self.n_items, self.args.embed_dim)
+        elif args.model_type in ['lr_gccf']:
+            self.model = LR_GCCF(self.n_users, self.n_items, self.args.embed_dim, self.args.layers_output_size, self.args.mess_dropout, self.args.node_dropout, self.norm_adj)
         else:
             raise Exception('Dont know which model to train')
 

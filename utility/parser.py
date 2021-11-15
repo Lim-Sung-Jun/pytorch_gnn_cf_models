@@ -18,13 +18,13 @@ def parse_args():
     # hyperparameter
     parser.add_argument('--epochs', type=int, default=1, #400
                         help='Number of epoch.')
-    parser.add_argument('--batch_size', type=int, default=1024, # 1024
+    parser.add_argument('--batch_size', type=int, default=16, # 1024 # 16
                         help='Batch size.')
-    parser.add_argument('--lr', type=float, default=0.0001, #
+    parser.add_argument('--lr', type=float, default=0.001, #0.0001
                         help='Learning rate.')
-    parser.add_argument('--embed_dim', type=int, default=64, #
+    parser.add_argument('--embed_dim', type=int, default=8, #
                         help='Embedding dimension.')
-    parser.add_argument('--layers_output_size', type=str, default='[64,64]', #
+    parser.add_argument('--layers_output_size', type=str, default='[8,8,8,8]', #
                         help='Output sizes of every layer adjusting n_layers')
 
     # 보류 1 ( 1, 3 )
@@ -44,7 +44,7 @@ def parse_args():
     # data & model
     parser.add_argument('--adj_type', default='norm',
                         help='Specify the type of the adjacency (laplacian) matrix from { plain, norm, mean }.')
-    parser.add_argument('--model_type', default='ngcf', #ngcf
+    parser.add_argument('--model_type', default='lr_gccf', #ngcf
                         help='Specify the type of the graph convolutional layer from { ngcf, mf }.')
 
     # metric ( 1, 3 )

@@ -196,11 +196,14 @@ class Data(object):
             return rd.sample(neg_items, num)
 
         pos_items, neg_items = [], []
+        new_users = []
         for u in users:
-            pos_items += sample_pos_items_for_u(u, 1)
-            neg_items += sample_neg_items_for_u(u, 1)
+            for _ in range(5):
+                new_users.append(u)
+            pos_items += sample_pos_items_for_u(u, 5)
+            neg_items += sample_neg_items_for_u(u, 5)
 
-        return users, pos_items, neg_items
+        return new_users, pos_items, neg_items
 
     def print_statistics(self):
         print('n_users=%d, n_items=%d' % (self.n_users, self.n_items))

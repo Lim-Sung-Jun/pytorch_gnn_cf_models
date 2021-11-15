@@ -4,7 +4,7 @@ import os
 import math
 from time import time
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
 
 def eval_model(indices_sort_top,index_end_i,top_k):
     # https://ride-or-die.info/normalized-discounted-cumulative-gain/

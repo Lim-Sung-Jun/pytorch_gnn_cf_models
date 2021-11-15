@@ -4,7 +4,7 @@ import torch.sparse as sparse
 import torch.nn.functional as F
 import numpy as np
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
 
 class NGCF(nn.Module):
     def __init__(self, n_users, n_items, embedding_dim, weight_size, dropout_list, node_dropout, norm_adj):

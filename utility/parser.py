@@ -12,40 +12,41 @@ def parse_args():
     # data
     parser.add_argument('--data_path', type=str, default='./data/',
                         help='Input data path.')
-    parser.add_argument('--dataset', type=str, default='Movielens-100k', #Gowalla
+    parser.add_argument('--dataset', type=str, default='Gowalla', #Gowalla
                         help='Dataset name: { Amazon-book, Gowalla, Movielens-100k }')
+    # negative sampling 개수를 위한 파서도 포함하기!
 
     # hyperparameter
-    parser.add_argument('--epochs', type=int, default=1, #400
+    parser.add_argument('--epochs', type=int, default=400, #400
                         help='Number of epoch.')
-    parser.add_argument('--batch_size', type=int, default=16, # 1024 # 16
+    parser.add_argument('--batch_size', type=int, default=2048*512, # 1024 # 16
                         help='Batch size.')
-    parser.add_argument('--lr', type=float, default=0.001, #0.0001
+    parser.add_argument('--lr', type=float, default=0.005, #0.0001
                         help='Learning rate.')
-    parser.add_argument('--embed_dim', type=int, default=8, #
+    parser.add_argument('--embed_dim', type=int, default=64, #
                         help='Embedding dimension.')
-    parser.add_argument('--layers_output_size', type=str, default='[8,8,8,8]', #
+    parser.add_argument('--layers_output_size', type=str, default='[64,64,64]', #
                         help='Output sizes of every layer adjusting n_layers')
 
     # 보류 1 ( 1, 3 )
-    parser.add_argument('--reg', type=float, default=1e-5, #
+    parser.add_argument('--reg', type=float, default=0.01, #
                         help='l2 regularization.')
     # parser.add_argument('--regs', nargs='?', default='[1e-5,1e-5,1e-2]',
     #                     help='Regularizations.')
 
     # 보류 2 ( 1, 3 )
-    parser.add_argument('--node_dropout', type=float, default=0.,
-                        help='Node dropout. if you use this option, modify the ngcf forward function')
-    # parser.add_argument('--mess_dropout', type=float, default=0.1,
-    #                     help='Message dropout.')
-    parser.add_argument('--mess_dropout', nargs='?', default='[0.1,0.1]', #0.1, 0.1
-                        help='Keep probability w.r.t. message dropout (i.e., 1-dropout_ratio) for each deep layer. 1: no dropout.')
+    # parser.add_argument('--node_dropout', type=float, default=0.,
+    #                     help='Node dropout. if you use this option, modify the ngcf forward function')
+    # # parser.add_argument('--mess_dropout', type=float, default=0.1,
+    # #                     help='Message dropout.')
+    # parser.add_argument('--mess_dropout', nargs='?', default='[0.1,0.1]', #0.1, 0.1
+    #                     help='Keep probability w.r.t. message dropout (i.e., 1-dropout_ratio) for each deep layer. 1: no dropout.')
 
     # data & model
     parser.add_argument('--adj_type', default='norm',
                         help='Specify the type of the adjacency (laplacian) matrix from { plain, norm, mean }.')
     parser.add_argument('--model_type', default='lr_gccf', #ngcf
-                        help='Specify the type of the graph convolutional layer from { ngcf, mf }.')
+                        help='Specify the type of the graph convolutional layer from { lr_gccf, ngcf, mf }.')
 
     # metric ( 1, 3 )
     parser.add_argument('--k', type=str, default=20,

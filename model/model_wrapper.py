@@ -43,11 +43,11 @@ class Model_Wrapper(object):
 
         self.model = self.model.to(device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.args.lr)
-        self.lr_scheduler = self.set_lr_scheduler()
+        # self.lr_scheduler = self.set_lr_scheduler()
 
         self.results = {"Epoch": [],
                    "Loss": [],
-                   "Recall": [],
+                   "HR": [],
                    "NDCG": [],
                    "Training Time": []}
 
@@ -71,10 +71,10 @@ class Model_Wrapper(object):
 
         if self.args.reg > 0.: #self.reg 추가하
             # u_emb는 self.batch_size
-            l2norm = (torch.sum(users**2)/2. + torch.sum(pos_items**2)/2. + torch.sum(neg_items**2)/2.) / users.shape[0]
-            l2reg  = self.args.reg * l2norm
-            bpr_loss = -log_prob + l2reg
-
+            # l2norm = (torch.sum(users**2)/2. + torch.sum(pos_items**2)/2. + torch.sum(neg_items**2)/2.) / users.shape[0]
+            # l2reg  = self.args.reg * l2norm
+            l2_regulization = (0.01 * (users ** 2 + pos_items ** 2 + neg_items ** 2).sum(dim=-1)).mean()
+            bpr_loss = -log_prob + l2_regulization
         return bpr_loss
 
     def train(self):
@@ -98,6 +98,11 @@ class Model_Wrapper(object):
                 self.ua_embeddings, self.ia_embeddings = self.model()
 
                 users, pos_items, neg_items = self.data_generator.sample()
+
+                # u_g_embeddings = F.embedding(users, self.ua_embeddings)
+                # pos_i_g_embeddings = F.embedding(pos_items, self.ia_embeddings)
+                # neg_i_g_embeddings = F.embedding(neg_items, self.ia_embeddings)
+
                 u_g_embeddings = self.ua_embeddings[users]
                 pos_i_g_embeddings = self.ia_embeddings[pos_items]
                 neg_i_g_embeddings = self.ia_embeddings[neg_items]
@@ -112,7 +117,7 @@ class Model_Wrapper(object):
             print("Epoch: {}, Training time: {:.2f}s, Loss: {:.4f}".
                   format(epoch, training_time, running_loss))
 
-            self.lr_scheduler.step()
+            # self.lr_scheduler.step()
 
             if math.isnan(running_loss) == True:
                 print('ERROR: loss is nan.')
@@ -151,10 +156,10 @@ class Model_Wrapper(object):
 
                         pre_one = all_pre[user][test_items]
                         _, test_indices = torch.topk(pre_one, dim=0, k=self.args.k)
-                        recall, ndcg = eval_model(test_indices, index_end_i, self.args.k) # 2nd.
-                        HR.append(recall)
+                        hr, ndcg = eval_model(test_indices, index_end_i, self.args.k) # 2nd.
+                        HR.append(hr)
                         NDCG.append(ndcg)
-                    recall = round(np.mean(HR), 4)
+                    hr = round(np.mean(HR), 4)
                     ndcg = round(np.mean(NDCG), 4)
                         ####################################################
                     # # 4.test + nothing
@@ -175,26 +180,26 @@ class Model_Wrapper(object):
                     "Evaluate current model:\n",
                     "Epoch: {}, Validation time: {:.2f}s".format(epoch, time()-t2),"\n",
                     "Loss: {:.4f}:".format(running_loss), "\n",
-                    "Recall@{}: {:.4f}".format(self.args.k, recall), "\n",
+                    "HR@{}: {:.4f}".format(self.args.k, hr), "\n",
                     "NDCG@{}: {:.4f}".format(self.args.k, ndcg)
                     )
 
                 del self.ua_embeddings, self.ia_embeddings, u_g_embeddings, neg_i_g_embeddings, pos_i_g_embeddings
 
                 cur_best_metric, stopping_step, should_stop = \
-                early_stopping(recall, cur_best_metric, stopping_step, flag_step=5)
+                early_stopping(hr, cur_best_metric, stopping_step, flag_step=5)
 
                 # save results in dict
                 self.results['Epoch'].append(epoch)
                 self.results['Loss'].append(running_loss)
-                self.results['Recall'].append(recall.item())
+                self.results['HR'].append(hr.item())
                 self.results['NDCG'].append(ndcg.item())
                 self.results['Training Time'].append(training_time)
             else:
                 # save results in dict
                 self.results['Epoch'].append(epoch)
                 self.results['Loss'].append(running_loss)
-                self.results['Recall'].append(None)
+                self.results['HR'].append(None)
                 self.results['NDCG'].append(None)
                 self.results['Training Time'].append(training_time)
 
@@ -223,8 +228,8 @@ class Model_Wrapper(object):
                    self.args.adj_type)) #, time_consume 시간도 추가하면 좋겠다.
 
             for i in range(len(self.results['Epoch'])):
-                f.write('Epoch: %s loss:%s recall:%s ndcg:%s training time:%s\n'
-                        % (self.results['Epoch'][i], self.results['Loss'][i], self.results['Recall'][i], self.results['NDCG'][i], self.results['Training Time'][i]))
+                f.write('Epoch: %s loss:%s hr:%s ndcg:%s training time:%s\n'
+                        % (self.results['Epoch'][i], self.results['Loss'][i], self.results['HR'][i], self.results['NDCG'][i], self.results['Training Time'][i]))
 
             f.write('\n\n%s\n\n' % self.results)
             f.close()
